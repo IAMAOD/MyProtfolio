@@ -49,7 +49,7 @@
 
         // ✅ โหลด HDRI จาก GitHub (ใช้ raw link)
         const rgbeLoader = new THREE.RGBELoader();
-        rgbeLoader.setDataType(THREE.UnsignedByteType);
+        rgbeLoader.setDataType(THREE.FloatType);
         rgbeLoader.load(
             'https://raw.githubusercontent.com/IAMAOD/MyProtfolio/main/Environment.hdr',
             function(texture){
