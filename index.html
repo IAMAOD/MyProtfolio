@@ -59,69 +59,6 @@
             }
         );
 
-        // GLTFLoader
-        const loader = new THREE.GLTFLoader();
-        loader.load(
-            'https://iamaod.github.io/ICG/horse_bust.glb',
-            function(gltf) {
-                const model = gltf.scene;
-
-                const box = new THREE.Box3().setFromObject(model);
-                const size = new THREE.Vector3();
-                box.getSize(size);
-                const center = new THREE.Vector3();
-                box.getCenter(center);
-
-                model.position.x -= center.x;
-                model.position.y -= box.min.y;
-                model.position.z -= center.z;
-
-                const maxDim = Math.max(size.x, size.y, size.z);
-                if(maxDim > 0){
-                    const scale = 1.5 / maxDim;
-                    model.scale.setScalar(scale);
-                }
-
-                model.traverse(function(child){
-                    if(child.isMesh){
-                        child.castShadow = true;
-                        child.receiveShadow = true;
-                        if (child.material) {
-                            child.material.needsUpdate = true;
-                        }
-                    }
-                });
-
-                scene.add(model);
-            },
-            undefined,
-            function(error){
-                console.error('Error loading model:', error);
-            }
-        );
-
-        // dat.GUI
-        const gui = new dat.GUI();
-
-        // Light controls
-        const lightFolder = gui.addFolder('Directional Light');
-        const lightParams = {
-            x: directionalLight.position.x,
-            y: directionalLight.position.y,
-            z: directionalLight.position.z,
-            intensity: directionalLight.intensity
-        };
-        lightFolder.add(lightParams, 'x', -20, 20).onChange(v => directionalLight.position.x = v);
-        lightFolder.add(lightParams, 'y', 0, 20).onChange(v => directionalLight.position.y = v);
-        lightFolder.add(lightParams, 'z', -20, 20).onChange(v => directionalLight.position.z = v);
-        lightFolder.add(lightParams, 'intensity', 0, 5).onChange(v => directionalLight.intensity = v);
-        lightFolder.open();
-
-        // ✅ Exposure controls
-        const renderFolder = gui.addFolder('Renderer');
-        renderFolder.add(renderer, 'toneMappingExposure', 0.1, 2).name('Exposure');
-        renderFolder.open();
-
         // Animate
         function animate(){
             controls.update();
