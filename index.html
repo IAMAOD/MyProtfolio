@@ -100,6 +100,26 @@
             }
         );
 
+        // โหลด Texture จากลิงก์
+const textureLoader = new THREE.TextureLoader();
+textureLoader.load(
+    'https://iamaod.github.io/MyProtfolio/MyPicture.webp',
+    function(texture) {
+        // สร้าง Plane สำหรับแสดงรูป
+        const picture = new THREE.Mesh(
+            new THREE.PlaneGeometry(2, 2), // ปรับขนาดตามต้องการ
+            new THREE.MeshBasicMaterial({ map: texture })
+        );
+        picture.position.set(0, 1.5, -2); // ตำแหน่งในฉาก
+        scene.add(picture);
+    },
+    undefined,
+    function(err) {
+        console.error('Error loading picture:', err);
+    }
+);
+
+
 
         // Animate
         function animate(){
