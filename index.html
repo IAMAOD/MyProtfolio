@@ -1,140 +1,482 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-    <title>MyProtfolio</title>
+    <title>MyPortfolio</title>
     <style>
-        body { margin: 0; overflow: hidden; }
+        /* ✅ 1. เพิ่ม Font สไตล์ Sci-Fi จาก Google Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Orbitron', sans-serif;
+            /* ใช้ฟอนต์ใหม่ */
+        }
+
+        /* ----- ✅ 2. อัปเดต CSS ของ Modal ทั้งหมดเป็นดีไซน์ไฮเทค ----- */
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 15, 30, 0.85);
+            /* พื้นหลังโปร่งแสงโทนน้ำเงินเข้ม */
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(5px);
+            /* เพิ่มเอฟเฟกต์เบลอ */
+        }
+
+        .modal-content {
+            color: #e0e0e0;
+            padding: 2px;
+            /* ลด padding เพื่อให้กรอบในติดขอบ */
+            border-radius: 10px;
+            width: 90%;
+            max-width: 650px;
+            text-align: center;
+
+            /* สร้างพื้นหลังไฮเทค: สีน้ำเงินเข้ม + ลาย Grid */
+            background-color: #020a1a;
+            background-image:
+                linear-gradient(rgba(0, 170, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 170, 255, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+
+            /* สร้างกรอบหลายชั้นด้วย Box Shadow */
+            border: 1px solid #00aaff;
+            box-shadow:
+                0 0 15px rgba(0, 170, 255, 0.7),
+                /* แสงฟุ้งรอบนอก */
+                inset 0 0 15px rgba(0, 170, 255, 0.4);
+            /* แสงฟุ้งด้านใน */
+        }
+
+        .modal-inner-content {
+            padding: 40px;
+        }
+
+        .modal-title {
+            color: #00eaff;
+            /* สีฟ้าสว่าง (Cyan) */
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+            /* เพิ่มเอฟเฟกต์ตัวอักษรเรืองแสง */
+            text-shadow: 0 0 10px #00eaff, 0 0 20px #00eaff;
+        }
+
+        .modal-description {
+            font-size: 1.1rem;
+            line-height: 2.5;
+            margin-bottom: 30px;
+            text-align: left;
+            font-family: sans-serif;
+            /* ใช้ฟอนต์ธรรมดาเพื่อให้คำอธิบายอ่านง่าย */
+        }
+
+        .skill-icon {
+            height: 1.2em;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+
+        .back-btn {
+            background: linear-gradient(45deg, #d91e55, #ff3366);
+            color: #fff;
+            border: none;
+            padding: 12px 40px;
+            font-size: 1rem;
+            font-family: 'Orbitron', sans-serif;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(255, 51, 102, 0.7);
+        }
+
+        .back-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 51, 102, 1);
+        }
     </style>
 </head>
+
 <body>
+    <div id="infoModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-inner-content">
+                <h1 id="modalTitle" class="modal-title"></h1>
+                <div id="modalDescription" class="modal-description"></div>
+                <button id="backButton" class="back-btn">BACK</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/dat.gui/build/dat.gui.min.js"></script>
 
     <script>
-        // Renderer
-        const renderer = new THREE.WebGLRenderer({antialias:true});
+        //=====================================================
+        // 1. Scene Setup
+        //=====================================================
+
+        const renderer = new THREE.WebGLRenderer({
+            antialias: true
+        });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-        // ✅ Tone mapping (สำคัญมากสำหรับ HDRI)
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 1.0;
-
         document.body.appendChild(renderer.domElement);
 
-        // Scene & Camera
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.set(0, 2, 5);
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
 
-        // Lights
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
-        directionalLight.position.set(5,3,5);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(5, 5, 5);
         directionalLight.castShadow = true;
         scene.add(directionalLight);
 
-        // Ground
-        const plane = new THREE.Mesh(
-            new THREE.PlaneGeometry(10,10),
-            new THREE.MeshStandardMaterial({color:0xffffff})
-        );
-        plane.rotation.x = -Math.PI/2;
-        plane.receiveShadow = true;
-        scene.add(plane);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
 
-        // ✅ โหลด HDRI จาก GitHub (ใช้ raw link)
+
+        //=====================================================
+        // 2. Global Variables
+        //=====================================================
+        let envMap = null;
+        const clock = new THREE.Clock();
+        const mixers = [];
+        let astronautModel, earthModel, aboutMeModel, SpaceShipModel, jupiterModel, neptuneModel, saturnModel, moonMesh;
+        let MyProjectModel, SkillModel, CreditModel, nameModel;
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        let isCameraMoving = false;
+        const cameraTargetPosition = new THREE.Vector3();
+        const controlsTargetPosition = new THREE.Vector3();
+        const initialCameraPosition = new THREE.Vector3();
+        const initialControlsTarget = new THREE.Vector3();
+
+
+        //=====================================================
+        // 3. Shaders
+        //=====================================================
+        const jupiterUniforms = {
+            uTime: { value: 0.0 },
+            uLightDir: { value: new THREE.Vector3(0.4, 1.0, 0.8).normalize() },
+            uTex: { value: null }
+        };
+        const jupiterVert = `varying vec3 vNormal; varying vec3 vPosW; varying vec2 vUv; void main(){ vNormal = normalize(mat3(modelMatrix) * normal); vUv = uv; vPosW = (modelMatrix * vec4(position, 1.0)).xyz; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`;
+        const jupiterFrag = `precision mediump float; varying vec3 vNormal; uniform vec3 uLightDir; varying vec3 vPosW; varying vec2 vUv; uniform sampler2D uTex; void main() { float diffuse = clamp(dot(vNormal, uLightDir), 0.0, 1.0); float levels = 5.0; diffuse = floor(diffuse * levels) / levels; diffuse += 0.5; vec3 R = reflect(-uLightDir, vNormal); vec3 V = normalize(cameraPosition - vPosW); float specular = max(pow(dot(R,V), 32.0), 0.0); specular = smoothstep(0.80, 0.85, specular); if(diffuse <= 0.3) specular = 0.0; vec3 base = texture2D(uTex, vUv).rgb; vec3 color = (base * diffuse) + vec3(specular); gl_FragColor = vec4(color, 1.0); }`;
+
+
+        //=====================================================
+        // 4. Asset Loading
+        //=====================================================
         const rgbeLoader = new THREE.RGBELoader();
         rgbeLoader.setDataType(THREE.FloatType);
-        rgbeLoader.load(
-            'https://raw.githubusercontent.com/IAMAOD/MyProtfolio/main/omega canis.hdr',
-            function(texture){
-                texture.mapping = THREE.EquirectangularReflectionMapping;
-                scene.background = texture;
-                scene.environment = texture;
-            }
-        );
+        rgbeLoader.load('https://raw.githubusercontent.com/IAMAOD/MyProtfolio/main/mars.hdr', (texture) => {
+            texture.mapping = THREE.EquirectangularReflectionMapping;
+            scene.background = texture;
+            scene.environment = texture;
+            envMap = texture;
+        });
 
-        const loader = new THREE.GLTFLoader();
-        loader.load(
-            'https://iamaod.github.io/MyProtfolio/name.glb',
-            function(gltf) {
-                const model = gltf.scene;
+        const gltfLoader = new THREE.GLTFLoader();
+        const textureLoader = new THREE.TextureLoader();
 
-                const box = new THREE.Box3().setFromObject(model);
-                const size = new THREE.Vector3();
-                box.getSize(size);
-                const center = new THREE.Vector3();
-                box.getCenter(center);
-
-                model.position.x -= center.x;
-                model.position.y -= box.min.y;
-                model.position.z -= center.z;
-
-                const maxDim = Math.max(size.x, size.y, size.z);
-                if(maxDim > 0){
-                    const scale = 1.5 / maxDim;
-                    model.scale.setScalar(scale);
-                }
-
-                model.traverse(function(child){
-                    if(child.isMesh){
-                        child.castShadow = true;
-                        child.receiveShadow = true;
-                        if (child.material) {
-                            child.material.needsUpdate = true;
-                        }
+        // Load Astronaut
+        gltfLoader.load('https://iamaod.github.io/MyProtfolio/astronaut.glb', (gltf) => {
+            astronautModel = gltf.scene;
+            astronautModel.scale.set(0.4, 0.4, 0.4);
+            astronautModel.position.set(-2, 0, 2);
+            astronautModel.traverse((node) => {
+                if (node.isMesh) {
+                    node.castShadow = true;
+                    node.receiveShadow = true;
+                    if (node.material && node.material.isMeshStandardMaterial && envMap) {
+                        node.material.envMap = envMap;
+                        node.material.envMapIntensity = 1.5;
                     }
-                });
-                model.position.set(0, 1, 0);
-                model.rotation.x = Math.PI/2;
-                scene.add(model);
-            },
-            undefined,
-            function(error){
-                console.error('Error loading model:', error);
+                }
+            });
+            if (gltf.animations && gltf.animations.length) {
+                const mixer = new THREE.AnimationMixer(astronautModel);
+                mixer.clipAction(gltf.animations[0]).play();
+                mixers.push(mixer);
             }
-        );
+            scene.add(astronautModel);
 
-        // โหลด Texture จากลิงก์
-const textureLoader = new THREE.TextureLoader();
-textureLoader.load(
-    'https://iamaod.github.io/MyProtfolio/MyPicture.webp',
-    function(texture) {
-        // สร้าง Plane สำหรับแสดงรูป
-        const picture = new THREE.Mesh(
-            new THREE.PlaneGeometry(2, 2), // ปรับขนาดตามต้องการ
-            new THREE.MeshBasicMaterial({ map: texture })
-        );
-        picture.position.set(2, 1, 0); // ตำแหน่งในฉาก
-        scene.add(picture);
-    },
-    undefined,
-    function(err) {
-        console.error('Error loading picture:', err);
-    }
-);
-
-
-
-        // Animate
-        function animate(){
+            // Set and store initial camera position
+            const modelPosition = new THREE.Vector3();
+            astronautModel.getWorldPosition(modelPosition);
+            const cameraLookAt = new THREE.Vector3(modelPosition.x, modelPosition.y + 0.8, modelPosition.z);
+            camera.position.set(cameraLookAt.x - 0.2, cameraLookAt.y, cameraLookAt.z + 0.85);
+            controls.target.copy(cameraLookAt);
             controls.update();
-            renderer.render(scene,camera);
+            initialCameraPosition.copy(camera.position);
+            initialControlsTarget.copy(controls.target);
+        });
+
+        // Load Planets
+        gltfLoader.load('https://iamaod.github.io/MyProtfolio/earth.glb', (gltf) => {
+            earthModel = gltf.scene;
+            earthModel.scale.set(0.025, 0.025, 0.025);
+            earthModel.position.set(-6, 3, -15);
+            scene.add(earthModel);
+        });
+
+        const moonColorMap = textureLoader.load('https://threejs.org/examples/textures/planets/moon_1024.jpg');
+        const moonDisplacementMap = textureLoader.load('https://threejs.org/examples/textures/terrain/moon_height.jpg');
+        const moonGeometry = new THREE.SphereGeometry(1.5, 64, 64);
+        const moonMaterial = new THREE.MeshStandardMaterial({
+            map: moonColorMap,
+            displacementMap: moonDisplacementMap,
+            displacementScale: 0.1
+        });
+        moonMesh = new THREE.Mesh(moonGeometry, moonMaterial);
+        moonMesh.position.set(-13, 3.2, -15);
+        scene.add(moonMesh);
+
+        gltfLoader.load('https://iamaod.github.io/MyProtfolio/neptune.glb', (gltf) => {
+            neptuneModel = gltf.scene;
+            neptuneModel.scale.set(0.2, 0.2, 0.2);
+            neptuneModel.position.set(-10, 3, 4);
+            scene.add(neptuneModel);
+        });
+
+        gltfLoader.load('https://iamaod.github.io/MyProtfolio/saturn_planet.glb', (gltf) => {
+            saturnModel = gltf.scene;
+            saturnModel.scale.set(2, 2, 2);
+            saturnModel.position.set(12, 3.5, 6);
+            scene.add(saturnModel);
+        });
+
+        textureLoader.load('https://cdn.esahubble.org/archives/images/screen/heic1522a.jpg', (jupiterTex) => {
+            jupiterUniforms.uTex.value = jupiterTex;
+            const jupiterGeo = new THREE.SphereBufferGeometry(3, 32, 32);
+            const jupiterMat = new THREE.ShaderMaterial({
+                vertexShader: jupiterVert,
+                fragmentShader: jupiterFrag,
+                uniforms: jupiterUniforms
+            });
+            jupiterModel = new THREE.Mesh(jupiterGeo, jupiterMat);
+            jupiterModel.position.set(9, 3.5, -10);
+            scene.add(jupiterModel);
+        });
+
+        // Load Other Models
+        gltfLoader.load('https://iamaod.github.io/MyProtfolio/helicopter_space_ship.glb', (gltf) => {
+            SpaceShipModel = gltf.scene;
+            SpaceShipModel.scale.set(0.8, 0.8, 0.8);
+            SpaceShipModel.rotation.y = -Math.PI / 3;
+            SpaceShipModel.position.set(0, 0, -2);
+            SpaceShipModel.traverse((node) => {
+                if (node.isMesh) {
+                    node.castShadow = true;
+                    node.receiveShadow = true;
+                    if (node.material && node.material.isMeshStandardMaterial && envMap) {
+                        node.material.envMap = envMap;
+                        node.material.envMapIntensity = 1.5;
+                    }
+                }
+            });
+            if (gltf.animations && gltf.animations.length) {
+                const mixer = new THREE.AnimationMixer(SpaceShipModel);
+                mixer.clipAction(gltf.animations[0]).play();
+                mixers.push(mixer);
+            }
+            scene.add(SpaceShipModel);
+        });
+
+        gltfLoader.load('https://iamaod.github.io/MyProtfolio/AboutMe.glb', (gltf) => {
+            aboutMeModel = gltf.scene;
+            aboutMeModel.scale.set(0.3, 0.3, 0.3);
+            aboutMeModel.rotation.x = Math.PI / 2;
+            aboutMeModel.position.set(-1.5, 1, 2);
+            scene.add(aboutMeModel);
+        });
+
+        gltfLoader.load('https://iamaod.github.io/MyProtfolio/MyProject.glb', (gltf) => {
+            MyProjectModel = gltf.scene;
+            MyProjectModel.scale.set(0.3, 0.3, 0.3);
+            MyProjectModel.rotation.x = Math.PI / 2;
+            MyProjectModel.position.set(-1.5, 0.8, 2);
+            scene.add(MyProjectModel);
+        });
+
+        gltfLoader.load('https://iamaod.github.io/MyProtfolio/Skill.glb', (gltf) => {
+            SkillModel = gltf.scene;
+            SkillModel.scale.set(0.3, 0.3, 0.3);
+            SkillModel.rotation.x = Math.PI / 2;
+            SkillModel.position.set(-1.5, 0.6, 2);
+            scene.add(SkillModel);
+        });
+
+        gltfLoader.load('https://iamaod.github.io/MyProtfolio/Credit.glb', (gltf) => {
+            CreditModel = gltf.scene;
+            CreditModel.scale.set(0.3, 0.3, 0.3);
+            CreditModel.rotation.x = Math.PI / 2;
+            CreditModel.position.set(-1.5, 0.4, 2);
+            scene.add(CreditModel);
+        });
+
+        gltfLoader.load('https://iamaod.github.io/MyProtfolio/name.glb', (gltf) => {
+            nameModel = gltf.scene;
+            nameModel.scale.set(0.2, 0.2, 0.2);
+            nameModel.position.set(3, 0, 3.5);
+            scene.add(nameModel);
+        });
+
+        textureLoader.load('https://iamaod.github.io/MyProtfolio/MyPicture.webp', (texture) => {
+            const picturePlane = new THREE.Mesh(
+                new THREE.BoxGeometry(1, 1, 0.01),
+                new THREE.MeshBasicMaterial({
+                    map: texture,
+                    transparent: true
+                })
+            );
+            picturePlane.position.set(2.3, 0, 4);
+            picturePlane.rotation.x = -Math.PI / 2;
+            scene.add(picturePlane);
+        });
+
+
+        //=====================================================
+        // 5. GUI Modal Logic & Interactions
+        //=====================================================
+        const modal = document.getElementById('infoModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalDescription = document.getElementById('modalDescription');
+        const backButton = document.getElementById('backButton');
+
+        const modalData = {
+            'About Me': `...`,
+            'My Project': `...`,
+            'Skills': `
+                <b>Programming :</b> 
+                C<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/c/c-original.svg" class="skill-icon">, 
+                Java<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg" class="skill-icon">, 
+                RISC-V Assembly, 
+                HTML<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" class="skill-icon">
+                <br>
+                <b>Development Tool :</b> 
+                VS Code<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vscode/vscode-original.svg" class="skill-icon">, 
+                GitHub<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" class="skill-icon">
+                <br>
+                <b>Language :</b> Thai, English
+            `,
+            'Credits': `...`
+        };
+
+        function showModal(title) {
+            modalTitle.textContent = title;
+            modalDescription.innerHTML = modalData[title] || '...';
+            modal.style.display = 'flex';
+        }
+
+        function hideModal() {
+            modal.style.display = 'none';
+        }
+
+        backButton.addEventListener('click', () => {
+            hideModal();
+            cameraTargetPosition.copy(initialCameraPosition);
+            controlsTargetPosition.copy(initialControlsTarget);
+            isCameraMoving = true;
+        });
+
+        window.addEventListener('click', (event) => {
+            if (isCameraMoving) return;
+
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+
+            const checkIntersection = (model, title, targetModel, camOffset) => {
+                if (model && raycaster.intersectObject(model, true).length > 0) {
+                    hideModal();
+                    controlsTargetPosition.copy(targetModel.position);
+                    cameraTargetPosition.set(targetModel.position.x + camOffset.x, targetModel.position.y + camOffset.y, targetModel.position.z + camOffset.z);
+                    isCameraMoving = true;
+                    modal.dataset.showOnArrival = title;
+                    return true;
+                }
+                return false;
+            };
+
+            if (checkIntersection(aboutMeModel, 'About Me', earthModel, { x: 0, y: 1, z: 3 })) return;
+            if (checkIntersection(MyProjectModel, 'My Project', jupiterModel, { x: 0, y: 0, z: 5 })) return;
+            if (checkIntersection(SkillModel, 'Skills', saturnModel, { x: 0, y: 2, z: 5 })) return;
+            if (checkIntersection(CreditModel, 'Credits', neptuneModel, { x: 0, y: 1, z: 4 })) return;
+        });
+
+
+        //=====================================================
+        // 6. Animation Loop & Resize Handler
+        //=====================================================
+        function animate() {
             requestAnimationFrame(animate);
+
+            const deltaTime = clock.getDelta();
+            const elapsedTime = clock.getElapsedTime();
+
+            // Update Mixers
+            mixers.forEach(m => m.update(deltaTime));
+
+            // Update Jupiter Shader
+            jupiterUniforms.uTime.value = elapsedTime;
+            jupiterUniforms.uLightDir.value.set(Math.sin(elapsedTime * 0.7), 1.0, 0.8).normalize();
+
+            // Animate Planets and Spaceship
+            if (earthModel) earthModel.rotation.y = elapsedTime * 0.1;
+            if (jupiterModel) jupiterModel.rotation.y = elapsedTime * 0.05;
+            if (neptuneModel) neptuneModel.rotation.y = elapsedTime * 0.08;
+            if (saturnModel) saturnModel.rotation.y = elapsedTime * 0.03;
+            if (SpaceShipModel) SpaceShipModel.position.y = Math.sin(elapsedTime * 0.8) * 0.15;
+            if (moonMesh) moonMesh.rotation.y = elapsedTime * 0.2;
+
+            // Handle Camera Movement
+            if (isCameraMoving) {
+                camera.position.lerp(cameraTargetPosition, 0.05);
+                controls.target.lerp(controlsTargetPosition, 0.05);
+
+                if (camera.position.distanceTo(cameraTargetPosition) < 0.1) {
+                    isCameraMoving = false;
+                    camera.position.copy(cameraTargetPosition);
+                    controls.target.copy(controlsTargetPosition);
+
+                    if (modal.dataset.showOnArrival) {
+                        showModal(modal.dataset.showOnArrival);
+                        delete modal.dataset.showOnArrival;
+                    }
+                }
+            }
+
+            // Update Controls and Render
+            controls.update();
+            renderer.render(scene, camera);
         }
         animate();
 
-        // Resize
-        window.addEventListener('resize', ()=>{
-            camera.aspect = window.innerWidth/window.innerHeight;
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
     </script>
 </body>
+
 </html>
